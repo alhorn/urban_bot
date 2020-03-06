@@ -1,5 +1,9 @@
 from room import Room
 from telebot import types
+import math
+import config
+import sqlite3
+import statistic
 
 def render_invite_keyboard():
     keyboard = types.InlineKeyboardMarkup(row_width = 2)
@@ -8,8 +12,9 @@ def render_invite_keyboard():
     keyboard.add(item1, item2)
     return keyboard
 
+
 def render_invite(room):
-    text = ''
+    text = '*Now Joined:*\n'
 
     for r in room.users:
         if r.last_name != None:
@@ -18,45 +23,89 @@ def render_invite(room):
             text += '{}\n'.format(r.first_name)
 
     if len(room.users) == 0:
-        text = "----"
+        text = "Press *'Join'*"
 
     return (text, render_invite_keyboard())
 
 
 def render_result(room):
     room.is_correct_answer()
-    text = ''
-    i = 0
+
+    text = '*Total Results:*\n'
+
+    top_dict = dict()
+    top_list = list()
+
     for r in room.users:
+        statistic.stat_insert([r.id, 1, room.user_score.get(r.id), config.question_number - room.user_score.get(r.id)])
         if r.last_name != None:
-            text += '{} {} - {}\n'.format(r.first_name, r.last_name, room.user_score.get(r.id))
+            top_dict['{} {}'.format(r.first_name, r.last_name)] = room.user_score.get(r.id)
         else:
-            text += '{} - {}\n'.format(r.first_name, room.user_score.get(r.id))           
-        i += 1
+            top_dict['{}'.format(r.first_name)] = room.user_score.get(r.id)
 
-    keyboard = types.InlineKeyboardMarkup(row_width = 2)
-    item1 = types.InlineKeyboardButton('a', callback_data = '1')
-    item2 = types.InlineKeyboardButton('b', callback_data = '2')
+    top_list = list(top_dict.items())
+    top_list.sort(key=lambda i: i[1])
+    top_list.reverse()
+    top_dict = dict(top_list)
 
-    keyboard.add(item1, item2)
+    if len(top_list) > 1:
+
+        max_result = 0
+        for i in range(len(top_list)):
+            if top_list[i][1] > max_result:
+                max_result = top_list[i][1]
+
+        for i in range(len(top_list)):
+            if top_list[i][1] == max_result:
+                top_dict[top_list[i][0]] = str(top_list[i][1]) + ' 🏆'
+            else:
+                top_dict[top_list[i][0]] = str(top_list[i][1])
+
+    else:
+        top_dict[top_list[0][0]] = str(top_list[0][1]) + ' 🏆'
+
+    for i in top_dict:
+        text += '_{}_ - *{}*\n'.format(i, top_dict.get(i))
+
+    keyboard = None
     return (text, keyboard)
 
-def render_question(room):
+
+
+def render_question(room): 
     question = room.get_current_question()
     text = ''
-    text += '{}. What is a "{}"?\n'.format(room.current_question + 1 ,question.word)
+    text += 'What is a *"{}"*?_({}/{})_\n\n'.format(question.word, room.current_question + 1, config.question_number)
 
     i = 1
     for op in question.options:
-        text += '{} -> {}\n'.format(i, op[0])
+        text += '*{}.* {}\n\n'.format(i, op[0])
         i += 1
-
+    timer = math.ceil(room.time_left() / 10)  * '⏱'
+    text += 'The round will end in {}\n'.format(timer)
+    for r in room.users:
+        if r.id in room.answers[room.current_question]:
+            if room.is_current_answer_correct(r) == True:
+                if r.last_name != None:
+                    text += '{} {} {}\n'.format(r.first_name, r.last_name, '✅')
+                else:
+                    text += '{} - {}\n'.format(r.first_name, '✅')
+            else:
+                if r.last_name != None:
+                    text += '{} {} {}\n'.format(r.first_name, r.last_name, '❎')
+                else:
+                    text += '{} - {}\n'.format(r.first_name, '❎')                   
+        else:
+            if r.last_name != None:
+                text += '{} {} {}\n'.format(r.first_name, r.last_name, '⏳')
+            else:
+                text += '{} - {}\n'.format(r.first_name, '⏳')
 
     keyboard = types.InlineKeyboardMarkup(row_width = 2)
-    item1 = types.InlineKeyboardButton('1', callback_data = '1')
-    item2 = types.InlineKeyboardButton('2', callback_data = '2')
-    item3 = types.InlineKeyboardButton('3', callback_data = '3')
-    item4 = types.InlineKeyboardButton('4', callback_data = '4')
+    item1 = types.InlineKeyboardButton('1️⃣', callback_data = 'answer_1')
+    item2 = types.InlineKeyboardButton('2️⃣', callback_data = 'answer_2')
+    item3 = types.InlineKeyboardButton('3️⃣', callback_data = 'answer_3')
+    item4 = types.InlineKeyboardButton('4️⃣', callback_data = 'answer_4')
     keyboard.add(item1, item2, item3, item4)
 
     return (text, keyboard)
