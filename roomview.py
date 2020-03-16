@@ -67,7 +67,10 @@ def render_result(room):
     for i in top_dict:
         text += '_{}_ - *{}*\n'.format(i, top_dict.get(i))
 
-    keyboard = None
+
+    keyboard = types.InlineKeyboardMarkup(row_width = 1)
+    item1 = types.InlineKeyboardButton('Start new game 🔄', switch_inline_query_current_chat = '')
+    keyboard.add(item1)
     return (text, keyboard)
 
 
@@ -81,8 +84,11 @@ def render_question(room):
     for op in question.options:
         text += '*{}.* {}\n\n'.format(i, op[0])
         i += 1
-    timer = math.ceil(room.time_left() / 10)  * '⏱'
-    text += 'The round will end in {}\n'.format(timer)
+    if room.time_left() < 5:
+        text += "Next round➡️\n\n"
+    else:
+        timer = math.ceil(room.time_left() / 10)  * '⏱'
+        text += 'The round will end in {}\n'.format(timer)
     for r in room.users:
         if r.id in room.answers[room.current_question]:
             if room.is_current_answer_correct(r) == True:

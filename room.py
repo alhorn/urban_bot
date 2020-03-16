@@ -30,7 +30,7 @@ class Room:
             if self.timestamp_end and self.timestamp_end <= current_time:
                 if not self.is_ended():
                     self.next_question()
-                    self.on_update_handler(self)
+                    self.on_update_handler(self)                
             else:
                 if not self.update_time:
                     self.update_time = current_time + 10
@@ -94,6 +94,10 @@ class Room:
     def is_all_answer(self):
         if len(self.users) == len(self.answers[self.current_question]):
             self.timestamp_end = time.time() + 1
+            self.on_update_handler(self)
+            return True
+        else:
+            return False
 
     def start_game(self):
         self.started = True
@@ -101,5 +105,3 @@ class Room:
 
     def is_ended(self):
         return self.current_question >= len(self.questions)
-
-    
