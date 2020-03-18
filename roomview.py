@@ -84,11 +84,19 @@ def render_question(room):
     for op in question.options:
         text += '*{}.* {}\n\n'.format(i, op[0])
         i += 1
-    if room.time_left() < 5:
+    if room.time_left() < 3:
         text += "Next round➡️\n\n"
+    elif room.time_left() < 10:
+        text += "Less than 10 seconds left\n\n"
+    elif room.time_left() < 20:
+        text += "Less than 20 seconds left\n\n"
     else:
-        timer = math.ceil(room.time_left() / 10)  * '⏱'
-        text += 'The round will end in {}\n'.format(timer)
+        text += "Waiting for answers from all players\n\n"
+
+    
+    # else:
+    #     timer = math.ceil(room.time_left() / 10)  * '⏱'
+    #     text += 'The round will end in {}\n'.format(timer)
     for r in room.users:
         if r.id in room.answers[room.current_question]:
             if room.is_current_answer_correct(r) == True:

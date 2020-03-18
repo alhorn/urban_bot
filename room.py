@@ -26,18 +26,20 @@ class Room:
         # camelCase PascalCase kebab-case snake_case
 
         def on_tick():
-            current_time = time.time()
-            if self.timestamp_end and self.timestamp_end <= current_time:
-                if not self.is_ended():
-                    self.next_question()
-                    self.on_update_handler(self)                
-            else:
-                if not self.update_time:
-                    self.update_time = current_time + 10
-                if current_time >= self.update_time and not self.is_ended():
-                    self.on_update_handler(self)
-                    self.update_time = current_time + 10
-
+            try:
+                current_time = time.time()
+                if self.timestamp_end and self.timestamp_end <= current_time:
+                    if not self.is_ended():
+                        self.next_question()
+                        self.on_update_handler(self)                
+                else:
+                    if not self.update_time:
+                        self.update_time = current_time + 5
+                    if current_time >= self.update_time and not self.is_ended():
+                        self.on_update_handler(self)
+                        self.update_time = current_time + 5
+            except:
+                pass
         self.one_second_timer = set_interval(on_tick, 1)
 
 
@@ -94,7 +96,10 @@ class Room:
     def is_all_answer(self):
         if len(self.users) == len(self.answers[self.current_question]):
             self.timestamp_end = time.time() + 1
-            self.on_update_handler(self)
+            try:
+                self.on_update_handler(self)
+            except:
+                pass
             return True
         else:
             return False
