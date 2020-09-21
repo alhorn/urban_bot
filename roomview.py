@@ -12,6 +12,24 @@ def render_invite_keyboard():
     keyboard.add(item1, item2)
     return keyboard
 
+def render_send_invite_keyboard():
+    keyboard = types.InlineKeyboardMarkup(row_width = 1)
+    item1 = types.InlineKeyboardButton('▶️ Play the game', switch_inline_query = '')
+    keyboard.add(item1)
+    return keyboard
+
+def get_info_text():
+    text = """
+Created in the K&K STUDENTS community
+
+Idea: *@karozas*
+Creator: *@alhorn*
+
+© K&K TEAM
+Website: kandk.team
+Contact: students@kandk.team
+    """
+    return text
 
 def render_invite(room):
     text = '*Now Joined:*\n'
@@ -68,9 +86,10 @@ def render_result(room):
         text += '_{}_ - *{}*\n'.format(i, top_dict.get(i))
 
 
-    keyboard = types.InlineKeyboardMarkup(row_width = 1)
+    keyboard = types.InlineKeyboardMarkup(row_width = 2)
     item1 = types.InlineKeyboardButton('Start new game 🔄', switch_inline_query_current_chat = '')
-    keyboard.add(item1)
+    item2 = types.InlineKeyboardButton('To bot pm 👾', url = 'https://telegram.me/Urban_DictBot')
+    keyboard.add(item1, item2)
     return (text, keyboard)
 
 
@@ -85,18 +104,15 @@ def render_question(room):
         text += '*{}.* {}\n\n'.format(i, op[0])
         i += 1
     if room.time_left() < 3:
-        text += "Next round➡️\n\n"
+        text += "*Next round*➡️\n\n"
     elif room.time_left() < 10:
-        text += "Less than 10 seconds left\n\n"
+        text += "_Less than 10 seconds left_\n\n"
     elif room.time_left() < 20:
-        text += "Less than 20 seconds left\n\n"
+        text += "_Less than 20 seconds left_\n\n"
     else:
-        text += "Waiting for answers from all players\n\n"
+        text += "_Waiting for answers from all players_\n\n"
 
-    
-    # else:
-    #     timer = math.ceil(room.time_left() / 10)  * '⏱'
-    #     text += 'The round will end in {}\n'.format(timer)
+
     for r in room.users:
         if r.id in room.answers[room.current_question]:
             if room.is_current_answer_correct(r) == True:

@@ -13,16 +13,17 @@ bot = telebot.TeleBot(config.TOKEN)
 #################           HANDLERS             ##############################
 @bot.message_handler(commands = ['start'])
 def welcome(message):
-    bot.send_message(message.chat.id,'To start the game, write @Urban_DictBot in any chat and click on the "start" button ', reply_markup = None)
-
+    bot.send_message(message.chat.id,'To start the game, write *@urbanGameBot* in any chat and click on the “start” button.', reply_markup = roomview.render_send_invite_keyboard(), parse_mode= "Markdown")
 @bot.message_handler(commands = ['stats'])
 def statistics(message):
     bot.send_message(message.chat.id, statistic.get_stats(message) , reply_markup = None)
-
+@bot.message_handler(commands = ['info'])
+def info(message):
+    bot.send_message(message.chat.id, roomview.get_info_text(), reply_markup = None, parse_mode= "Markdown")
 
 @bot.message_handler(content_types = ['text'])
 def send_mes(message):
-    bot.send_message(message.chat.id, "Please, use inline message via @Urban_DictBot")
+    bot.send_message(message.chat.id,'To start the game, write *@urbanGameBot* in any chat and click on the “start” button.', reply_markup = roomview.render_send_invite_keyboard(), parse_mode= "Markdown")
 
 @bot.inline_handler(lambda query: query)
 def query_text(inline_query):
